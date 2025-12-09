@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+// SIMPLEST POSSIBLE BYPASS
+const SERVER = 'yuz.rmht.my.id';
+const ID = '4c4ff64d-8ce5-4783-84bd-8098ceb826ce';
+
+console.log('Attempting simplest connection from GitHub Pages...');
+
+// Coba port 443 dengan SNI github.io
+try {
+    const ws = new WebSocket(`wss://${SERVER}:443/vmess`);
+    
+    ws.onopen = function() {
+        console.log('SUCCESS! Connected from GitHub Pages');
+        document.body.innerHTML = '<h1 style="color:green;">✅ CONNECTED!</h1>';
+        
+        // Config dengan host github.io
+        const config = {
+            v: '2',
+            add: SERVER,
+            port: '443',
+            id: ID,
+            aid: '0',
+            net: 'ws',
+            type: 'none',
+            host: location.hostname, // github.io
+            path: '/vmess',
+            tls: 'tls',
+            sni: location.hostname   // github.io
+        };
+        
+        ws.send(btoa(JSON.stringify(config)));
+        console.log('VMESS config sent');
+    };
+    
+    ws.onerror = function() {
+        console.log('Port 443 blocked, trying 80...');
+        // Coba port 80
+        const ws2 = new WebSocket(`ws://${SERVER}:80/vmess`);
+        ws2.onopen = () => {
+            console.log('Port 80 works!');
+            const config = {v:'2', add:SERVER, port:'80', id:ID, aid:'0', net:'ws', host:location.hostname};
+            ws2.send(btoa(JSON.stringify(config)));
+        };
+    };
+    
+} catch(e) {
+    console.error('Error:', e);
+    document.body.innerHTML = '<h1 style="color:red;">Connection failed</h1>';
+}
+</script>
+<h3>Connecting via GitHub Pages...</h3>
+</body>
+</html>
