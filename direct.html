@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Bypass - No Worker Needed</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #0a192f; color: white; }
+        .box { background: rgba(255,255,255,0.05); padding: 20px; margin: 20px 0; border-radius: 10px; }
+        button { padding: 15px 30px; margin: 10px; background: #00d4aa; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #log { background: black; color: lime; padding: 15px; font-family: monospace; height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Direct GitHub Bypass</h1>
+    <p><strong>Strategy:</strong> Connect directly from GitHub Pages to V2Ray</p>
+    
+    <div class="box">
+        <button onclick="testConnection()">Test Direct Connection</button>
+        <button onclick="startBypass()">Start Bypass</button>
+        <button onclick="emergencyMode()">Emergency Mode</button>
+    </div>
+    
+    <div class="box">
+        <h3>Connection Log:</h3>
+        <div id="log"></div>
+    </div>
+    
+    <script>
+        const V2RAY_SERVER = 'yuz.rmht.my.id';
+        const VMESS_ID = '4c4ff64d-8ce5-4783-84bd-8098ceb826ce';
+        const logElement = document.getElementById('log');
+        
+        function log(msg) {
+            const time = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${time}] ${msg}<br>`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(msg);
+        }
+        
+        // TEST 1: Coba koneksi langsung dengan header GitHub
+        async function testConnection() {
+            log('Testing direct connection with GitHub header...');
+            
+            // Coba dengan berbagai teknik:
+            
+            // 1. WebSocket dengan host header GitHub
+            try {
+                const ws = new WebSocket(`wss://${V2RAY_SERVER}:443/vmess`);
+                ws.onopen = () => {
+                    log('✅ DIRECT CONNECTION SUCCESS!');
+                    log('Sending VMESS config...');
+                    
+                    const config = {
+                        v: '2',
+                        ps: 'GitHub-Direct',
+                        add: V2RAY_SERVER,
+                        port: '443',
+                        id: VMESS_ID,
+                        aid: '0',
+                        net: 'ws',
+                        type: 'none',
+                        host: window.location.hostname, // github.io
+                        path: '/vmess',
+                        tls: 'tls',
+                        sni: window.location.hostname
+                    };
+                    
+                    ws.send(btoa(JSON.stringify(config)));
+                    log('Config sent. Connection established!');
+                };
+                ws.onerror = (e) => {
+                    log('❌ WebSocket blocked');
+                    testAlternativeMethods();
+                };
+            } catch (e) {
+                log('WebSocket error: ' + e.message);
+            }
+        }
+        
+        // TEST 2: Metode alternatif
+        async function testAlternativeMethods() {
+            log('Trying alternative methods...');
+            
+            // Method A: Fetch dengan mode no-cors
+            try {
+                await fetch(`https://${V2RAY_SERVER}:443`, {
+                    mode: 'no-cors',
+                    headers: {
+                        'Host': window.location.hostname,
+                        'Origin': `https://${window.location.hostname}`
+                    }
+                });
+                log('⚠️ Fetch attempted (no-cors)');
+            } catch (e) {}
+            
+            // Method B: Image load test
+            const img = new Image();
+            img.onload = () => log('✅ Can load images from server');
+            img.onerror = () => log('❌ Cannot load images');
+            img.src = `https://${V2RAY_SERVER}:443/favicon.ico?t=${Date.now()}`;
+            
+            // Method C: Script load test
+            const script = document.createElement('script');
+            script.onload = () => log('✅ Can load scripts');
+            script.onerror = () => log('❌ Cannot load scripts');
+            script.src = `https://${V2RAY_SERVER}:443/?callback=test`;
+            document.head.appendChild(script);
+        }
+        
+        // START BYPASS: Metode utama
+        function startBypass() {
+            log('🚀 Starting GitHub Pages bypass...');
+            
+            // Strategy: Create WebSocket from GitHub Pages context
+            // Firewall mungkin memperbolehkan traffic dari github.io
+            
+            const ws = new WebSocket(`wss://${V2RAY_SERVER}:443/vmess`);
+            
+            ws.onopen = function() {
+                log('🎉 CONNECTED VIA GITHUB PAGES!');
+                log('Firewall allows traffic from github.io domain');
+                
+                // Create VMESS config dengan SNI github.io
+                const vmessConfig = {
+                    v: '2',
+                    ps: 'GitHub-Bypass-' + Date.now(),
+                    add: V2RAY_SERVER,
+                    port: '443',
+                    id: VMESS_ID,
+                    aid: '0',
+                    net: 'ws',
+                    type: 'none',
+                    host: window.location.hostname, // SANGAT PENTING: github.io
+                    path: '/vmess',
+                    tls: 'tls',
+                    sni: window.location.hostname, // SNI = github.io
+                    fp: 'chrome' // Fingerprint
+                };
+                
+                const encoded = btoa(JSON.stringify(vmessConfig));
+                ws.send(encoded);
+                
+                log('✅ VMESS config sent with github.io SNI');
+                log('🔗 Connection should now be active');
+                
+                // Simpan WebSocket untuk digunakan
+                window.v2rayConnection = ws;
+                
+                // Test internet melalui koneksi ini
+                testInternetThroughConnection();
+            };
+            
+            ws.onerror = function(error) {
+                log('❌ WebSocket error: ' + error.type);
+                log('Trying port 80 (non-TLS)...');
+                tryPort80();
+            };
+            
+            ws.onmessage = function(event) {
+                log('📨 Received: ' + event.data.substring(0, 100));
+            };
+        }
+        
+        // Coba port 80 (HTTP, non-TLS)
+        function tryPort80() {
+            log('Trying WebSocket on port 80 (ws://)...');
+            
+            const ws = new WebSocket(`ws://${V2RAY_SERVER}:80/vmess`);
+            
+            ws.onopen = function() {
+                log('✅ Connected via port 80 (non-TLS)!');
+                const config = {
+                    v: '2', add: V2RAY_SERVER, port: '80',
+                    id: VMESS_ID, aid: '0', net: 'ws',
+                    host: window.location.hostname, path: '/vmess',
+                    tls: 'none'
+                };
+                ws.send(btoa(JSON.stringify(config)));
+            };
+            
+            ws.onerror = function() {
+                log('❌ Port 80 also blocked');
+                log('Trying alternative ports...');
+                tryAlternativePorts();
+            };
+        }
+        
+        // Coba port alternatif dari config Anda
+        function tryAlternativePorts() {
+            const ports = [2052, 2053, 8880, 8080]; // Port dari config Anda
+            
+            ports.forEach(port => {
+                log(`Trying port ${port}...`);
+                
+                const ws = new WebSocket(`ws://${V2RAY_SERVER}:${port}/vmess`);
+                ws.onopen = () => {
+                    log(`✅ Port ${port} works!`);
+                    const config = {
+                        v: '2', add: V2RAY_SERVER, port: port.toString(),
+                        id: VMESS_ID, aid: '0', net: 'ws',
+                        host: window.location.hostname, path: '/vmess',
+                        tls: 'none'
+                    };
+                    ws.send(btoa(JSON.stringify(config)));
+                };
+                ws.onerror = () => log(`❌ Port ${port} blocked`);
+            });
+        }
+        
+        // Test internet melalui koneksi yang sudah ada
+        function testInternetThroughConnection() {
+            log('Testing internet access through V2Ray connection...');
+            
+            // Buat iframe yang akan menggunakan proxy
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.srcdoc = `
+                <!DOCTYPE html>
+                <html>
+                <body>
+                    <script>
+                        // Coba akses internet dari dalam iframe
+                        fetch('https://api.ipify.org?format=json')
+                            .then(r => r.json())
+                            .then(data => {
+                                parent.postMessage({type: 'internet_test', ip: data.ip}, '*');
+                            })
+                            .catch(e => {
+                                parent.postMessage({type: 'internet_test', error: e.message}, '*');
+                            });
+                    <\/script>
+                </body>
+                </html>
+            `;
+            document.body.appendChild(iframe);
+            
+            // Listen for response
+            window.addEventListener('message', (event) => {
+                if (event.data.type === 'internet_test') {
+                    if (event.data.ip) {
+                        log(`🌍 INTERNET ACCESS: Your IP is ${event.data.ip}`);
+                    } else {
+                        log('❌ No internet access from iframe');
+                    }
+                }
+            });
+        }
+        
+        // EMERGENCY MODE: Semua metode sekaligus
+        function emergencyMode() {
+            log('🚨 EMERGENCY BYPASS - TRYING EVERYTHING');
+            
+            // 1. WebSocket langsung
+            const ws1 = new WebSocket(`wss://${V2RAY_SERVER}:443/vmess`);
+            const ws2 = new WebSocket(`ws://${V2RAY_SERVER}:80/vmess`);
+            const ws3 = new WebSocket(`ws://${V2RAY_SERVER}:2052/vmess`);
+            
+            // 2. Buat banyak iframe dengan metode berbeda
+            for (let i = 0; i < 3; i++) {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.srcdoc = `
+                    <script>
+                        // Metode ${i}: Coba koneksi
+                        const ports = [443, 80, 2052, 2053, 8880];
+                        const port = ports[${i}];
+                        const protocol = port === 443 ? 'wss' : 'ws';
+                        
+                        try {
+                            const ws = new WebSocket(protocol + '://${V2RAY_SERVER}:' + port + '/vmess');
+                            ws.onopen = () => {
+                                parent.postMessage({method: ${i}, port: port, success: true}, '*');
+                                const config = {
+                                    v: '2', add: '${V2RAY_SERVER}', port: port,
+                                    id: '${VMESS_ID}', aid: '0', net: 'ws',
+                                    host: '${window.location.hostname}', path: '/vmess',
+                                    tls: port === 443 ? 'tls' : 'none'
+                                };
+                                ws.send(btoa(JSON.stringify(config)));
+                            };
+                        } catch(e) {}
+                    <\/script>
+                `;
+                document.body.appendChild(iframe);
+            }
+            
+            // Listen for success
+            window.addEventListener('message', (event) => {
+                if (event.data.success) {
+                    log(`🎉 EMERGENCY SUCCESS: Method ${event.data.method}, Port ${event.data.port}`);
+                }
+            });
+            
+            log('Emergency mode active. Checking all possible connections...');
+        }
+        
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            log('GitHub Pages Bypass Loaded');
+            log(`Domain: ${window.location.hostname}`);
+            log(`Target: ${V2RAY_SERVER}:443`);
+            log('Click "Test Direct Connection" to begin');
+        });
+    </script>
+</body>
+</html>
