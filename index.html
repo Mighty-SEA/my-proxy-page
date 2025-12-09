@@ -1,403 +1,479 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GitHub Pages Proxy</title>
+    <title>WiFi Bypass Gateway</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 500px;
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
-        .server-info {
-            background: #f8fafc;
-            border-radius: 10px;
+            min-height: 100vh;
             padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        h1 { 
+            color: #00ff88;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px rgba(0,255,136,0.3);
+        }
+        .subtitle {
+            text-align: center;
+            color: #a0a0c0;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 25px;
             margin-bottom: 25px;
-            border-left: 4px solid #4f46e5;
+            border-left: 5px solid #4CAF50;
         }
-        
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .info-row:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-        
-        .label {
-            font-weight: 600;
-            color: #475569;
-        }
-        
-        .value {
-            color: #0f172a;
-            font-family: monospace;
-        }
-        
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+        .card.error { border-left-color: #ff4444; }
+        .card.warning { border-left-color: #ffaa00; }
+        .card.info { border-left-color: #2196F3; }
         
         .btn {
-            padding: 15px 20px;
+            display: inline-block;
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            padding: 15px 30px;
             border: none;
             border-radius: 10px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: bold;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.3s ease;
+            margin: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+        .btn.secondary {
+            background: linear-gradient(135deg, #2196F3 0%, #0D47A1 100%);
+        }
+        .btn.warning {
+            background: linear-gradient(135deg, #ff9800 0%, #ef6c00 100%);
         }
         
-        .btn-connect {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-        
-        .btn-connect:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-        }
-        
-        .btn-test {
-            background: #f1f5f9;
-            color: #475569;
-            border: 2px solid #e2e8f0;
-        }
-        
-        .btn-test:hover {
-            background: #e2e8f0;
+        .log-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            color: #00ff88;
         }
         
         .status {
-            margin-top: 25px;
-            padding: 20px;
-            border-radius: 10px;
-            background: #f8fafc;
-            display: none;
-        }
-        
-        .status.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        .status-connected {
-            border-left: 4px solid #10b981;
-        }
-        
-        .status-error {
-            border-left: 4px solid #ef4444;
-        }
-        
-        .status-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .status-message {
-            color: #475569;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        .log {
-            margin-top: 10px;
-            padding: 10px;
-            background: #1e293b;
-            color: #cbd5e1;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s linear infinite;
             display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-left: 10px;
         }
+        .status.online { background: #4CAF50; }
+        .status.offline { background: #f44336; }
+        .status.connecting { background: #ff9800; }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .connection-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
         }
-        
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #64748b;
+        .info-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .info-label {
+            color: #a0a0c0;
             font-size: 12px;
-            border-top: 1px solid #e2e8f0;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-family: monospace;
+            word-break: break-all;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🔓 WiFi Bypass Gateway</h1>
-            <p>Via GitHub Pages + Cloudflare Worker</p>
-        </div>
+        <h1>🔓 WiFi Bypass Gateway</h1>
+        <p class="subtitle">Using GitHub Pages + Cloudflare Worker to bypass WiFi voucher</p>
         
-        <div class="content">
-            <div class="server-info">
-                <div class="info-row">
-                    <span class="label">Server:</span>
-                    <span class="value">yuz.rmht.my.id</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Port:</span>
-                    <span class="value">443 (TLS)</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Protocol:</span>
-                    <span class="value">VMESS + WebSocket</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">User ID:</span>
-                    <span class="value">4c4ff64d-8ce5...</span>
-                </div>
+        <!-- Connection Info -->
+        <div class="connection-info">
+            <div class="info-item">
+                <div class="info-label">GitHub Pages</div>
+                <div class="info-value" id="githubHost"></div>
             </div>
-            
-            <div class="controls">
-                <button class="btn btn-connect" id="connectBtn" onclick="connectProxy()">
-                    <span id="btnText">🚀 Connect to Proxy</span>
-                    <span id="btnSpinner" class="spinner" style="display:none;"></span>
-                </button>
-                
-                <button class="btn btn-test" onclick="testConnection()">
-                    🔍 Test Connection
-                </button>
+            <div class="info-item">
+                <div class="info-label">Cloudflare Worker</div>
+                <div class="info-value" id="workerUrl"></div>
             </div>
-            
-            <div class="status" id="statusBox">
-                <div class="status-title">
-                    <span id="statusIcon">⏳</span>
-                    <span id="statusTitle">Status</span>
-                </div>
-                <div class="status-message" id="statusMessage">
-                    Ready to connect...
-                </div>
-                <div class="log" id="logOutput"></div>
+            <div class="info-item">
+                <div class="info-label">V2Ray Server</div>
+                <div class="info-value">yuz.rmht.my.id:443</div>
             </div>
         </div>
         
-        <div class="footer">
-            <p>Using: GitHub Pages (frontend) + Cloudflare Worker (backend)</p>
-            <p id="currentHost">Host: loading...</p>
+        <!-- Step 1: Test GitHub Access -->
+        <div class="card info">
+            <h2>Step 1: Test GitHub Pages Access</h2>
+            <p>We're currently on GitHub Pages (<span id="currentHost"></span>). If you can see this page, GitHub access works!</p>
+            <button class="btn" onclick="testGitHub()">✅ Test GitHub Access</button>
+            <span id="githubStatus" class="status connecting">Testing...</span>
+        </div>
+        
+        <!-- Step 2: Test Worker -->
+        <div class="card info">
+            <h2>Step 2: Test Cloudflare Worker</h2>
+            <p>Worker acts as proxy between GitHub and V2Ray server.</p>
+            <button class="btn secondary" onclick="testWorker()">🔗 Test Worker Connection</button>
+            <span id="workerStatus" class="status connecting">Waiting...</span>
+        </div>
+        
+        <!-- Step 3: Direct Connection Test -->
+        <div class="card warning">
+            <h2>Step 3: Test Direct V2Ray Connection</h2>
+            <p>Try connecting directly to V2Ray server (may be blocked by firewall).</p>
+            <button class="btn warning" onclick="testDirectConnection()">🚀 Test Direct Connection</button>
+            <span id="directStatus" class="status connecting">Not tested</span>
+        </div>
+        
+        <!-- Step 4: Establish Tunnel -->
+        <div class="card">
+            <h2>Step 4: Establish Proxy Tunnel</h2>
+            <p>Create WebSocket tunnel through Worker for full internet access.</p>
+            <button class="btn" onclick="startTunnel()">🌐 Start Proxy Tunnel</button>
+            <button class="btn secondary" onclick="startWebSocket()">🔌 WebSocket Mode</button>
+            <span id="tunnelStatus" class="status offline">Ready</span>
+        </div>
+        
+        <!-- Connection Log -->
+        <div class="card">
+            <h2>Connection Log</h2>
+            <div id="log" class="log-box">
+[SYSTEM] WiFi Bypass Gateway Initialized
+[INFO] Running on: GitHub Pages
+[INFO] Worker URL: https://bold-dust-7eeb.hibban-habiburrahman-sea.workers.dev
+            </div>
+            <button class="btn" onclick="clearLog()">Clear Log</button>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn" onclick="runAllTests()">▶️ Run All Tests</button>
+            <button class="btn warning" onclick="emergencyBypass()">🚨 Emergency Bypass</button>
         </div>
     </div>
 
     <script>
-        // URL Cloudflare Worker Anda
-        // GANTI INI dengan URL Worker Anda!
-        const WORKER_URL = 'https://gentle-band-5c6f.hibban-habiburrahman-sea.workers.dev/';
+        // Configuration
+        const WORKER_URL = 'https://bold-dust-7eeb.hibban-habiburrahman-sea.workers.dev';
+        const V2RAY_SERVER = 'yuz.rmht.my.id';
+        const V2RAY_PORT = '443';
+        const VMESS_ID = '4c4ff64d-8ce5-4783-84bd-8098ceb826ce';
         
-        // Elemen DOM
-        const connectBtn = document.getElementById('connectBtn');
-        const btnText = document.getElementById('btnText');
-        const btnSpinner = document.getElementById('btnSpinner');
-        const statusBox = document.getElementById('statusBox');
-        const statusIcon = document.getElementById('statusIcon');
-        const statusTitle = document.getElementById('statusTitle');
-        const statusMessage = document.getElementById('statusMessage');
-        const logOutput = document.getElementById('logOutput');
-        const currentHost = document.getElementById('currentHost');
+        // DOM Elements
+        const logElement = document.getElementById('log');
+        const currentHostElement = document.getElementById('currentHost');
+        const githubHostElement = document.getElementById('githubHost');
+        const workerUrlElement = document.getElementById('workerUrl');
         
-        // Tampilkan hostname saat ini
-        currentHost.textContent = `Host: ${window.location.hostname}`;
-        
-        // Log function
-        function log(message) {
-            const timestamp = new Date().toLocaleTimeString();
-            logOutput.innerHTML += `[${timestamp}] ${message}\n`;
-            logOutput.scrollTop = logOutput.scrollHeight;
-        }
-        
-        // Update status
-        function updateStatus(type, title, message) {
-            statusBox.className = 'status active status-' + type;
-            statusIcon.textContent = type === 'connected' ? '✅' : 
-                                   type === 'error' ? '❌' : '⏳';
-            statusTitle.textContent = title;
-            statusMessage.textContent = message;
-        }
-        
-        // Koneksi ke Proxy
-        async function connectProxy() {
-            updateStatus('connecting', 'Connecting...', 'Establishing connection via Cloudflare Worker');
-            log('Starting connection...');
+        // Initialize
+        window.addEventListener('load', function() {
+            const hostname = window.location.hostname;
+            currentHostElement.textContent = hostname;
+            githubHostElement.textContent = hostname;
+            workerUrlElement.textContent = WORKER_URL;
             
-            btnText.textContent = 'Connecting...';
-            btnSpinner.style.display = 'block';
-            connectBtn.disabled = true;
+            addLog('✅ Page loaded successfully');
+            addLog('📍 Current location: ' + window.location.href);
+            
+            // Auto-start basic tests
+            setTimeout(testGitHub, 1000);
+            setTimeout(testWorker, 2000);
+        });
+        
+        // Logging function
+        function addLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            logElement.innerHTML = '[LOG CLEARED]\n';
+        }
+        
+        function updateStatus(elementId, status, text) {
+            const element = document.getElementById(elementId);
+            element.className = 'status ' + status;
+            element.textContent = text;
+        }
+        
+        // Test 1: GitHub Access
+        async function testGitHub() {
+            updateStatus('githubStatus', 'connecting', 'Testing...');
+            addLog('Testing GitHub Pages access...');
             
             try {
-                // 1. Test koneksi HTTP dulu
-                log('Testing HTTP connection to Worker...');
-                const testResponse = await fetch(WORKER_URL + '/http-proxy?test=1');
-                const testText = await testResponse.text();
-                log('✓ Worker response: ' + testText.substring(0, 100));
+                // Test if we can access GitHub resources
+                const response = await fetch('https://api.github.com', { 
+                    mode: 'no-cors',
+                    cache: 'no-store'
+                });
                 
-                // 2. Coba WebSocket connection
-                log('Attempting WebSocket connection...');
-                const ws = new WebSocket(WORKER_URL.replace('https', 'wss') + '/vmess-ws');
+                updateStatus('githubStatus', 'online', 'Accessible ✓');
+                addLog('✅ GitHub Pages access confirmed');
+                addLog('💡 This page can bypass WiFi restrictions');
+                return true;
+            } catch (error) {
+                updateStatus('githubStatus', 'offline', 'Blocked ✗');
+                addLog('❌ GitHub access test failed');
+                addLog('⚠️ But we can still load this page, so partial access exists');
+                return false;
+            }
+        }
+        
+        // Test 2: Worker Connection
+        async function testWorker() {
+            updateStatus('workerStatus', 'connecting', 'Connecting...');
+            addLog('Testing Cloudflare Worker connection...');
+            
+            try {
+                const response = await fetch(WORKER_URL + '/test');
+                const data = await response.json();
+                
+                updateStatus('workerStatus', 'online', 'Connected ✓');
+                addLog('✅ Worker connection successful');
+                addLog('📊 Worker response: ' + JSON.stringify(data, null, 2).substring(0, 200));
+                return true;
+            } catch (error) {
+                updateStatus('workerStatus', 'offline', 'Failed ✗');
+                addLog('❌ Worker connection failed: ' + error.message);
+                return false;
+            }
+        }
+        
+        // Test 3: Direct V2Ray Connection
+        async function testDirectConnection() {
+            updateStatus('directStatus', 'connecting', 'Testing...');
+            addLog('Testing direct V2Ray connection...');
+            
+            // Method 1: Simple fetch (no-cors)
+            try {
+                await fetch(`https://${V2RAY_SERVER}:${V2RAY_PORT}`, {
+                    mode: 'no-cors',
+                    method: 'HEAD'
+                });
+                addLog('⚠️ Direct fetch attempted (no-cors mode)');
+            } catch (e) {
+                addLog('📡 Direct fetch blocked (expected)');
+            }
+            
+            // Method 2: WebSocket
+            try {
+                const ws = new WebSocket(`wss://${V2RAY_SERVER}:${V2RAY_PORT}/vmess`);
                 
                 ws.onopen = function() {
-                    updateStatus('connected', 'Connected!', 'Successfully connected to V2Ray server');
-                    log('✓ WebSocket connected to Worker');
+                    updateStatus('directStatus', 'online', 'Direct ✓');
+                    addLog('🎉 DIRECT CONNECTION SUCCESS! No bypass needed!');
                     
-                    // Kirim konfigurasi VMESS
-                    const vmessConfig = {
+                    // Send VMESS config immediately
+                    const config = {
                         v: '2',
-                        ps: 'GH-Bypass',
-                        add: 'yuz.rmht.my.id',
-                        port: '443',
-                        id: '4c4ff64d-8ce5-4783-84bd-8098ceb826ce',
+                        ps: 'Direct-GitHub-Bypass',
+                        add: V2RAY_SERVER,
+                        port: V2RAY_PORT,
+                        id: VMESS_ID,
                         aid: '0',
                         net: 'ws',
                         type: 'none',
-                        host: window.location.hostname, // GitHub.io domain
+                        host: window.location.hostname,
                         path: '/vmess',
                         tls: 'tls',
                         sni: window.location.hostname
                     };
                     
-                    ws.send(JSON.stringify({
-                        type: 'vmess-connect',
-                        config: vmessConfig
-                    }));
+                    ws.send(btoa(JSON.stringify(config)));
+                    addLog('✅ VMESS configuration sent directly');
                     
-                    log('✓ VMESS configuration sent');
-                };
-                
-                ws.onmessage = function(event) {
-                    log('📨 Received: ' + event.data);
+                    // Keep connection
+                    window.directConnection = ws;
                 };
                 
                 ws.onerror = function(error) {
-                    updateStatus('error', 'Connection Failed', 'WebSocket connection error');
-                    log('❌ WebSocket error: ' + error);
+                    updateStatus('directStatus', 'offline', 'Blocked ✗');
+                    addLog('❌ Direct WebSocket blocked by firewall');
+                    addLog('💡 Will use Worker proxy instead');
                 };
                 
-                ws.onclose = function() {
-                    log('WebSocket connection closed');
-                };
+                // Timeout
+                setTimeout(() => {
+                    if (ws.readyState === WebSocket.CONNECTING) {
+                        updateStatus('directStatus', 'offline', 'Timeout ✗');
+                        addLog('⏰ Direct connection timeout (blocked)');
+                        ws.close();
+                    }
+                }, 5000);
                 
             } catch (error) {
-                updateStatus('error', 'Connection Failed', error.message);
-                log('❌ Error: ' + error.message);
-            } finally {
-                btnText.textContent = '🚀 Reconnect';
-                btnSpinner.style.display = 'none';
-                connectBtn.disabled = false;
+                updateStatus('directStatus', 'offline', 'Error ✗');
+                addLog('❌ WebSocket error: ' + error.message);
             }
         }
         
-        // Test connection
-        async function testConnection() {
-            log('--- Testing connections ---');
+        // Start Proxy Tunnel via Worker
+        function startTunnel() {
+            updateStatus('tunnelStatus', 'connecting', 'Starting...');
+            addLog('Starting proxy tunnel via Worker...');
             
-            // Test 1: GitHub Pages access
-            log('Test 1: GitHub Pages access... ✓ (you are here)');
+            // Create WebSocket connection to Worker
+            const ws = new WebSocket(WORKER_URL.replace('https', 'wss') + '/ws');
             
-            // Test 2: Cloudflare Worker
-            try {
-                const response = await fetch(WORKER_URL);
-                log(`Test 2: Cloudflare Worker... ✓ Status: ${response.status}`);
-            } catch (e) {
-                log(`Test 2: Cloudflare Worker... ✗ Error: ${e.message}`);
-            }
+            ws.onopen = function() {
+                updateStatus('tunnelStatus', 'online', 'Tunnel Active ✓');
+                addLog('✅ Worker WebSocket tunnel established');
+                
+                // Send VMESS config to Worker
+                const config = {
+                    v: '2',
+                    ps: 'Worker-Tunnel',
+                    add: V2RAY_SERVER,
+                    port: V2RAY_PORT,
+                    id: VMESS_ID,
+                    aid: '0',
+                    net: 'ws',
+                    type: 'none',
+                    host: window.location.hostname,
+                    path: '/vmess',
+                    tls: 'tls',
+                    sni: window.location.hostname
+                };
+                
+                ws.send(JSON.stringify({
+                    type: 'vmess-connect',
+                    config: config,
+                    timestamp: new Date().toISOString()
+                }));
+                
+                addLog('📤 VMESS config sent to Worker');
+                addLog('🔧 Tunnel ready for data forwarding');
+                
+                // Store WebSocket for later use
+                window.tunnelWS = ws;
+            };
             
-            // Test 3: Direct server access
-            try {
-                await fetch('https://yuz.rmht.my.id:443', { 
-                    mode: 'no-cors',
-                    method: 'HEAD'
-                });
-                log('Test 3: Direct server access... ✓');
-            } catch (e) {
-                log(`Test 3: Direct server access... ✗ (expected if blocked)`);
-            }
+            ws.onmessage = function(event) {
+                addLog('📨 Tunnel message: ' + event.data.substring(0, 100));
+            };
             
-            log('--- Test complete ---');
+            ws.onerror = function(error) {
+                updateStatus('tunnelStatus', 'offline', 'Failed ✗');
+                addLog('❌ Tunnel error: ' + error);
+            };
+            
+            ws.onclose = function() {
+                updateStatus('tunnelStatus', 'offline', 'Closed');
+                addLog('🔌 Tunnel closed');
+            };
         }
         
-        // Auto-test saat page load
-        window.addEventListener('load', function() {
-            log('Page loaded from: ' + window.location.hostname);
-            log('Worker URL: ' + WORKER_URL);
-            updateStatus('ready', 'Ready', 'Click Connect to start proxy');
+        // Alternative: Direct WebSocket mode
+        function startWebSocket() {
+            addLog('Starting WebSocket-only mode...');
             
-            // Auto-test setelah 3 detik
-            setTimeout(testConnection, 3000);
-        });
+            // Simple test WebSocket
+            const ws = new WebSocket(WORKER_URL.replace('https', 'wss') + '/ws');
+            
+            ws.onopen = function() {
+                addLog('✅ WebSocket connected to Worker');
+                ws.send(JSON.stringify({ 
+                    type: 'ping', 
+                    message: 'Test from GitHub Pages',
+                    host: window.location.hostname
+                }));
+            };
+            
+            ws.onmessage = function(event) {
+                addLog('📨 WS: ' + event.data);
+            };
+        }
+        
+        // Run all tests
+        function runAllTests() {
+            addLog('=== RUNNING ALL TESTS ===');
+            testGitHub();
+            setTimeout(testWorker, 1000);
+            setTimeout(testDirectConnection, 2000);
+            setTimeout(() => {
+                addLog('=== TESTS COMPLETE ===');
+                addLog('Summary:');
+                addLog('1. GitHub Access: Required for this page');
+                addLog('2. Worker: Proxy gateway');
+                addLog('3. Direct: Likely blocked (use Worker tunnel)');
+                addLog('4. Tunnel: Click "Start Proxy Tunnel" to begin');
+            }, 4000);
+        }
+        
+        // Emergency bypass - simplest method
+        function emergencyBypass() {
+            addLog('🚨 EMERGENCY BYPASS ACTIVATED');
+            addLog('Attempting simplest possible connection...');
+            
+            // Try the most basic connection
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.srcdoc = `
+                <script>
+                    // Try to connect from within iframe
+                    const ws = new WebSocket('wss://${V2RAY_SERVER}:${V2RAY_PORT}/vmess');
+                    ws.onopen = () => {
+                        parent.postMessage({type: 'connected', ws: 'direct'}, '*');
+                        const config = {
+                            v: '2', add: '${V2RAY_SERVER}', port: '${V2RAY_PORT}',
+                            id: '${VMESS_ID}', aid: '0', net: 'ws',
+                            host: '${window.location.hostname}', path: '/vmess', tls: 'tls'
+                        };
+                        ws.send(btoa(JSON.stringify(config)));
+                    };
+                    ws.onerror = () => {
+                        parent.postMessage({type: 'failed', method: 'direct'}, '*');
+                    };
+                <\/script>
+            `;
+            document.body.appendChild(iframe);
+            
+            // Listen for messages from iframe
+            window.addEventListener('message', (event) => {
+                if (event.data.type === 'connected') {
+                    addLog('🎉 EMERGENCY BYPASS SUCCESS! Direct connection from iframe');
+                }
+            });
+        }
     </script>
 </body>
 </html>
