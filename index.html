@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GitHub Pages Proxy</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .server-info {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #4f46e5;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .label {
+            font-weight: 600;
+            color: #475569;
+        }
+        
+        .value {
+            color: #0f172a;
+            font-family: monospace;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-connect {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .btn-connect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-test {
+            background: #f1f5f9;
+            color: #475569;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .btn-test:hover {
+            background: #e2e8f0;
+        }
+        
+        .status {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8fafc;
+            display: none;
+        }
+        
+        .status.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .status-connected {
+            border-left: 4px solid #10b981;
+        }
+        
+        .status-error {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .status-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-message {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .log {
+            margin-top: 10px;
+            padding: 10px;
+            background: #1e293b;
+            color: #cbd5e1;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+            font-size: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔓 WiFi Bypass Gateway</h1>
+            <p>Via GitHub Pages + Cloudflare Worker</p>
+        </div>
+        
+        <div class="content">
+            <div class="server-info">
+                <div class="info-row">
+                    <span class="label">Server:</span>
+                    <span class="value">yuz.rmht.my.id</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Port:</span>
+                    <span class="value">443 (TLS)</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Protocol:</span>
+                    <span class="value">VMESS + WebSocket</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">User ID:</span>
+                    <span class="value">4c4ff64d-8ce5...</span>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-connect" id="connectBtn" onclick="connectProxy()">
+                    <span id="btnText">🚀 Connect to Proxy</span>
+                    <span id="btnSpinner" class="spinner" style="display:none;"></span>
+                </button>
+                
+                <button class="btn btn-test" onclick="testConnection()">
+                    🔍 Test Connection
+                </button>
+            </div>
+            
+            <div class="status" id="statusBox">
+                <div class="status-title">
+                    <span id="statusIcon">⏳</span>
+                    <span id="statusTitle">Status</span>
+                </div>
+                <div class="status-message" id="statusMessage">
+                    Ready to connect...
+                </div>
+                <div class="log" id="logOutput"></div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Using: GitHub Pages (frontend) + Cloudflare Worker (backend)</p>
+            <p id="currentHost">Host: loading...</p>
+        </div>
+    </div>
+
+    <script>
+        // URL Cloudflare Worker Anda
+        // GANTI INI dengan URL Worker Anda!
+        const WORKER_URL = 'https://v2ray-proxy.yourname.workers.dev';
+        
+        // Elemen DOM
+        const connectBtn = document.getElementById('connectBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const statusBox = document.getElementById('statusBox');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusMessage = document.getElementById('statusMessage');
+        const logOutput = document.getElementById('logOutput');
+        const currentHost = document.getElementById('currentHost');
+        
+        // Tampilkan hostname saat ini
+        currentHost.textContent = `Host: ${window.location.hostname}`;
+        
+        // Log function
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logOutput.innerHTML += `[${timestamp}] ${message}\n`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+        
+        // Update status
+        function updateStatus(type, title, message) {
+            statusBox.className = 'status active status-' + type;
+            statusIcon.textContent = type === 'connected' ? '✅' : 
+                                   type === 'error' ? '❌' : '⏳';
+            statusTitle.textContent = title;
+            statusMessage.textContent = message;
+        }
+        
+        // Koneksi ke Proxy
+        async function connectProxy() {
+            updateStatus('connecting', 'Connecting...', 'Establishing connection via Cloudflare Worker');
+            log('Starting connection...');
+            
+            btnText.textContent = 'Connecting...';
+            btnSpinner.style.display = 'block';
+            connectBtn.disabled = true;
+            
+            try {
+                // 1. Test koneksi HTTP dulu
+                log('Testing HTTP connection to Worker...');
+                const testResponse = await fetch(WORKER_URL + '/http-proxy?test=1');
+                const testText = await testResponse.text();
+                log('✓ Worker response: ' + testText.substring(0, 100));
+                
+                // 2. Coba WebSocket connection
+                log('Attempting WebSocket connection...');
+                const ws = new WebSocket(WORKER_URL.replace('https', 'wss') + '/vmess-ws');
+                
+                ws.onopen = function() {
+                    updateStatus('connected', 'Connected!', 'Successfully connected to V2Ray server');
+                    log('✓ WebSocket connected to Worker');
+                    
+                    // Kirim konfigurasi VMESS
+                    const vmessConfig = {
+                        v: '2',
+                        ps: 'GH-Bypass',
+                        add: 'yuz.rmht.my.id',
+                        port: '443',
+                        id: '4c4ff64d-8ce5-4783-84bd-8098ceb826ce',
+                        aid: '0',
+                        net: 'ws',
+                        type: 'none',
+                        host: window.location.hostname, // GitHub.io domain
+                        path: '/vmess',
+                        tls: 'tls',
+                        sni: window.location.hostname
+                    };
+                    
+                    ws.send(JSON.stringify({
+                        type: 'vmess-connect',
+                        config: vmessConfig
+                    }));
+                    
+                    log('✓ VMESS configuration sent');
+                };
+                
+                ws.onmessage = function(event) {
+                    log('📨 Received: ' + event.data);
+                };
+                
+                ws.onerror = function(error) {
+                    updateStatus('error', 'Connection Failed', 'WebSocket connection error');
+                    log('❌ WebSocket error: ' + error);
+                };
+                
+                ws.onclose = function() {
+                    log('WebSocket connection closed');
+                };
+                
+            } catch (error) {
+                updateStatus('error', 'Connection Failed', error.message);
+                log('❌ Error: ' + error.message);
+            } finally {
+                btnText.textContent = '🚀 Reconnect';
+                btnSpinner.style.display = 'none';
+                connectBtn.disabled = false;
+            }
+        }
+        
+        // Test connection
+        async function testConnection() {
+            log('--- Testing connections ---');
+            
+            // Test 1: GitHub Pages access
+            log('Test 1: GitHub Pages access... ✓ (you are here)');
+            
+            // Test 2: Cloudflare Worker
+            try {
+                const response = await fetch(WORKER_URL);
+                log(`Test 2: Cloudflare Worker... ✓ Status: ${response.status}`);
+            } catch (e) {
+                log(`Test 2: Cloudflare Worker... ✗ Error: ${e.message}`);
+            }
+            
+            // Test 3: Direct server access
+            try {
+                await fetch('https://yuz.rmht.my.id:443', { 
+                    mode: 'no-cors',
+                    method: 'HEAD'
+                });
+                log('Test 3: Direct server access... ✓');
+            } catch (e) {
+                log(`Test 3: Direct server access... ✗ (expected if blocked)`);
+            }
+            
+            log('--- Test complete ---');
+        }
+        
+        // Auto-test saat page load
+        window.addEventListener('load', function() {
+            log('Page loaded from: ' + window.location.hostname);
+            log('Worker URL: ' + WORKER_URL);
+            updateStatus('ready', 'Ready', 'Click Connect to start proxy');
+            
+            // Auto-test setelah 3 detik
+            setTimeout(testConnection, 3000);
+        });
+    </script>
+</body>
+</html>
